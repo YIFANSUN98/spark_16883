@@ -9,7 +9,8 @@ class TaskObject3D():
         self.velocity = kwargs.get("velocity", 1.0)
         self.bound = kwargs.get("bound", np.zeros((3,2)))
         self.smooth_weight = kwargs.get("smooth_weight", 1.0)
-        self.last_direction = kwargs.get("direction", np.array([-1.0,0.0,0.0]))
+        self.direction = kwargs.get("direction", np.array([-1.0,0.0,0.0]))
+        self.last_direction = self.direction
         self.step_counter = 0
         self.keep_direction_step = kwargs.get("keep_direction_step", 1)
     
@@ -155,9 +156,13 @@ class G1BenchmarkTask(BaseTask):
         
         self.info["obstacle_task"]["frames_world"]  = [obstacle.frame for obstacle in self.obstacle_task] if len(self.obstacle_task) > 0 else np.empty((0, 4, 4))
         self.info["obstacle_task"]["geom"]          = self.obstacle_task_geom
+        self.info["obstacle_task"]["velocity"]      = [obstacle.velocity * np.concatenate((obstacle.direction, np.zeros(3))) for obstacle in self.obstacle_task] if len(self.obstacle_task) > 0 else np.empty((0, 4, 4))
         self.info["obstacle_debug"]["frames_world"] = feedback.get("obstacle_debug_frame", np.empty((0, 4, 4)))
         self.info["obstacle_debug"]["geom"]         = feedback.get("obstacle_debug_geom", [])
+        self.info["obstacle_debug"]["velocity"]     = feedback.get("obstacle_debug_velocity", np.empty((1, 6)))
         self.info["obstacle"]["frames_world"]       = np.concatenate([self.info["obstacle_task"]["frames_world"], self.info["obstacle_debug"]["frames_world"]], axis=0)
+
+        self.info["obstacle"]["velocity"]           = np.concatenate([self.info["obstacle_task"]["velocity"], self.info["obstacle_debug"]["velocity"]], axis=0)
         self.info["obstacle"]["geom"]               = np.concatenate([self.info["obstacle_task"]["geom"], self.info["obstacle_debug"]["geom"]], axis=0)
         self.info["obstacle"]["num"]                = len(self.info["obstacle"]["frames_world"])
         
