@@ -7,7 +7,7 @@ from scipy.spatial.transform import Rotation as R
 class G1TeleopPIDPolicy2(BasePolicy):
     def __init__(self, robot_cfg: RobotConfig, robot_kinematics: RobotKinematics) -> None:
         super().__init__(robot_cfg, robot_kinematics)
-        self.pos_K_p = 1.0 * np.ones(len(self.robot_cfg.DoFs))
+        self.pos_K_p = 5.0 * np.ones(len(self.robot_cfg.DoFs))
         self.pos_K_d = 1.0 * np.ones(len(self.robot_cfg.DoFs))
 
     def tracking_pos_with_acc(self, 
