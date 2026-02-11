@@ -7,15 +7,23 @@ def config_task_module(cfg: PipelineConfig, **kwargs):
     """Configure task-related settings."""
     cfg.env.task.class_name = "CorridorTask"
     cfg.env.task.max_episode_length = 2000
-    cfg.env.task.seed = 20    
+    cfg.env.task.seed = 1    
     cfg.env.task.num_obstacle_task = 10  
     cfg.env.task.robot_keepout = 0.1               # Keepout distance for the robot
-    cfg.env.task.obstacle_range = [(0.5, 1.5), (-0.5, 0.5), (0.5, 1.0)]  
-    cfg.env.task.obstacle_size = 0.05              # Size of obstacles
-    cfg.env.task.obstacle_keepout = 0.0            # Keepout distance for obstacles
-    cfg.env.task.obstacle_velocity = 0.005         # Velocity of obstacles
-    cfg.env.task.mode = "Brownian"
+    
+    cfg.env.task.obstacle_range = [(-11.0, 11.0), (-3.0, 3.0), (0.5, 1.5)]
+    cfg.env.task.obstacle_init = [3.0, 0.15, 0.8]
+
+    cfg.env.task.obstacle_size = 0.1
+    cfg.env.task.obstacle_keepout = 0.1
+
+    cfg.env.task.obstacle_velocity = 0.1
+    cfg.env.task.obstacle_direction = [-1.0, 0.0, 0.0]
+    cfg.env.task.mode = "Velocity"
+    
     # Arm goal configuration
+    cfg.env.task.goal_left_init = [0.1,0.3,0.0]
+    cfg.env.task.goal_right_init = [0.1,-0.3,0.0]
     cfg.env.task.arm_goal_velocity = 0.0           # Velocity of the arm goal
     cfg.env.task.arm_goal_reach_done = True        # Flag to finish episode when arm goal is reached
 
@@ -134,7 +142,7 @@ def config_safety_module(cfg: PipelineConfig, **kwargs):
         case "si2a":
             cfg.algo.safe_controller.safety_index.class_name = "SecondOrderCollisionSafetyIndexApprox"
             cfg.algo.safe_controller.safety_index.phi_n = 1.0
-            cfg.algo.safe_controller.safety_index.phi_k = 10.0
+            cfg.algo.safe_controller.safety_index.phi_k = 0.5
         case 'si2nn':
             cfg.algo.safe_controller.safety_index.class_name = "SecondOrderNNCollisionSafetyIndex"
             cfg.algo.safe_controller.safety_index.phi_n = 2.0,
@@ -145,12 +153,11 @@ def config_safety_module(cfg: PipelineConfig, **kwargs):
 
 def config_pipeline(cfg: PipelineConfig, **kwargs):
     """Configure pipeline settings."""
-    cfg.robot.cfg.class_name = "G1SportModeDynamic1Config"
+    cfg.robot.cfg.class_name = "G1SportModeDynamic2Config"
     cfg.max_num_steps = 50000
-    cfg.max_num_reset = -1
+    cfg.max_num_reset = 1
     cfg.enable_logger = False
     cfg.enable_safe_zone_render = False
-
 
     cfg.metric_selection.dist_goal_base = True
 
@@ -183,5 +190,5 @@ def run( **kwargs):
 
 if __name__ == "__main__":
     
-    run(safe_algo = "rssa",
-        safety_index = "si1a")
+    run(safe_algo = "bypass",
+        safety_index = "si2a")
