@@ -1,40 +1,9 @@
 from spark_pipeline import BenchmarkPipeline as Pipeline
 from spark_pipeline import G1BenchmarkPipelineConfig as PipelineConfig
-from spark_pipeline import generate_benchmark_test_case
-import numpy as np
 
 def config_task_module(cfg: PipelineConfig, **kwargs):
     """Configure task-related settings."""
     cfg.env.task.class_name = "CorridorTask"
-    cfg.env.task.max_episode_length = 2000
-    cfg.env.task.seed = 1    
-    cfg.env.task.num_obstacle_task = 10  
-    cfg.env.task.robot_keepout = 0.1               # Keepout distance for the robot
-    
-    cfg.env.task.obstacle_range = [(-11.0, 11.0), (-3.0, 3.0), (0.5, 1.5)]
-    cfg.env.task.obstacle_init = [3.0, 0.15, 0.8]
-
-    cfg.env.task.obstacle_size = 0.1
-    cfg.env.task.obstacle_keepout = 0.1
-
-    cfg.env.task.obstacle_velocity = 0.1
-    cfg.env.task.obstacle_direction = [-1.0, 0.0, 0.0]
-    cfg.env.task.mode = "Velocity"
-    
-    # Arm goal configuration
-    cfg.env.task.goal_left_init = [0.1,0.3,0.0]
-    cfg.env.task.goal_right_init = [0.1,-0.3,0.0]
-    cfg.env.task.arm_goal_velocity = 0.0           # Velocity of the arm goal
-    cfg.env.task.arm_goal_reach_done = True        # Flag to finish episode when arm goal is reached
-
-    # Base goal configuration
-    cfg.env.task.base_goal_range = [(2.0, 2.0), (0.0, 0.0), (0.793, 0.793)]  
-    cfg.env.task.base_goal_rot_range = (0, 0)  # Rotation range for base goal as a tuple
-    cfg.env.task.base_goal_velocity = 0.0               # Velocity of the base goal
-    cfg.env.task.base_goal_reach_done = True            # Flag to finish episode when base goal is reached
-
-    # Seed configuration
-    cfg.env.task.seed = 0  # Random seed
     return cfg
 
 def config_agent_module(cfg: PipelineConfig, **kwargs):
@@ -57,15 +26,27 @@ def config_safety_module(cfg: PipelineConfig, **kwargs):
         case "bypass":
             cfg.algo.safe_controller.safe_algo.class_name = "ByPassSafeControl"
         
+        # NOTE: Feasible parameters
         case "ssa":
             cfg.algo.safe_controller.safe_algo.class_name = "BasicSafeSetAlgorithm"
-            cfg.algo.safe_controller.safe_algo.eta_ssa = 0.1
+            cfg.algo.safe_controller.safe_algo.eta_ssa = 1.0
             cfg.algo.safe_controller.safe_algo.control_weight = [
                 1.0, 1.0, 1.0,  # waist
-                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # left arm
-                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # right arm
-                1.0, 1.0, 1.0,
+                1.0, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,  # left arm
+                1.0, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,  # right arm
+                0.01, 0.01, 0.01,
             ]
+            
+        # NOTE: Infeasible parameters
+        # case "ssa":
+        #     cfg.algo.safe_controller.safe_algo.class_name = "BasicSafeSetAlgorithm"
+        #     cfg.algo.safe_controller.safe_algo.eta_ssa = 1.0
+        #     cfg.algo.safe_controller.safe_algo.control_weight = [
+        #         1.0, 1.0, 1.0,  # waist
+        #         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # left arm
+        #         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  # right arm
+        #         1.0, 1.0, 1.0,
+        #     ]
         
         case "rssa":
             cfg.algo.safe_controller.safe_algo.class_name = "RelaxedSafeSetAlgorithm"
@@ -154,7 +135,7 @@ def config_safety_module(cfg: PipelineConfig, **kwargs):
 def config_pipeline(cfg: PipelineConfig, **kwargs):
     """Configure pipeline settings."""
     cfg.robot.cfg.class_name = "G1SportModeDynamic2Config"
-    cfg.max_num_steps = 50000
+    cfg.max_num_steps = 10000
     cfg.max_num_reset = 1
     cfg.enable_logger = False
     cfg.enable_safe_zone_render = False
@@ -190,5 +171,5 @@ def run( **kwargs):
 
 if __name__ == "__main__":
     
-    run(safe_algo = "bypass",
+    run(safe_algo = "ssa",
         safety_index = "si2a")
